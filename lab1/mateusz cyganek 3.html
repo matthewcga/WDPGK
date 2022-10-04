@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Example 03 - Rotation</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1" />
+    <style type="text/css">
+        body {
+            background-color: #000000;
+            overflow: hidden;
+        }
+    </style>
+    <script src="three.js"></script>
+    <script src="Detector.js"></script>
+</head>
+
+<body>
+    <div id="WebGLCanvas"></div>
+    <script>
+        var scene;
+        var camera;
+        var t1;
+        var squareMesh;
+
+        let carLoc = 0;
+
+        initializeScene();
+        animateScene();
+
+        function initializeScene() {
+            if (Detector.webgl)
+                renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                });
+            else renderer = new THREE.CanvasRenderer();
+
+            renderer.setClearColor(0x000000, 1);
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+
+            renderer.setSize(canvasWidth, canvasHeight);
+            document
+                .getElementById("WebGLCanvas")
+                .appendChild(renderer.domElement);
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(
+                45,
+                canvasWidth / canvasHeight,
+                1,
+                100
+            );
+            camera.position.set(0, 0, 10);
+            camera.lookAt(scene.position);
+            scene.add(camera);
+
+            var triangleGeometry = new THREE.Geometry();
+            triangleGeometry.vertices.push(
+                new THREE.Vector3(0.0, 0.5, 0.0)
+            );
+            triangleGeometry.vertices.push(
+                new THREE.Vector3(-0.5, -0.5, 0.0)
+            );
+            triangleGeometry.vertices.push(
+                new THREE.Vector3(0.5, -0.5, 0.0)
+            );
+            triangleGeometry.faces.push(new THREE.Face3(0, 1, 2));
+
+            triangleGeometry.faces[0].vertexColors[0] = new THREE.Color(
+                0x66ff66
+            );
+            triangleGeometry.faces[0].vertexColors[1] = new THREE.Color(
+                0x66ff66
+            );
+            triangleGeometry.faces[0].vertexColors[2] = new THREE.Color(
+                0x66ff66
+            );
+
+            var triangleMaterial = new THREE.MeshBasicMaterial({
+                vertexColors: THREE.VertexColors,
+                side: THREE.DoubleSide,
+            });
+
+            t1 = new THREE.Mesh(triangleGeometry, triangleMaterial);
+            t1.position.set(-1.5, 1.0, 4.0);
+            scene.add(t1);
+
+            t2 = new THREE.Mesh(triangleGeometry, triangleMaterial);
+            t2.position.set(-1.5, 0.0, 4.0);
+            scene.add(t2);
+
+            t3 = new THREE.Mesh(triangleGeometry, triangleMaterial);
+            t3.position.set(-1.5, -1.0, 4.0);
+            scene.add(t3);
+
+            t4 = new THREE.Mesh(
+                triangleGeometry,
+                new THREE.MeshBasicMaterial({
+                    color: 0xaa5555,
+                    side: THREE.DoubleSide,
+                })
+            );
+            t4.position.set(1.5, 1.5, 4.0);
+            t4.scale.set(2.0, 1.0, 1.0);
+            scene.add(t4);
+
+            var squareGeometry = new THREE.Geometry();
+            squareGeometry.vertices.push(new THREE.Vector3(-1.0, 1.0, 0.0));
+            squareGeometry.vertices.push(new THREE.Vector3(1.0, 1.0, 0.0));
+            squareGeometry.vertices.push(new THREE.Vector3(1.0, -1.0, 0.0));
+            squareGeometry.vertices.push(
+                new THREE.Vector3(-1.0, -1.0, 0.0)
+            );
+            squareGeometry.faces.push(new THREE.Face3(0, 1, 2));
+            squareGeometry.faces.push(new THREE.Face3(0, 2, 3));
+
+            var squareMaterial = new THREE.MeshBasicMaterial({
+                color: 0x8080ff,
+                side: THREE.DoubleSide,
+            });
+
+            squareMesh = new THREE.Mesh(squareGeometry, squareMaterial);
+            squareMesh.position.set(1.5, 0.0, 4.0);
+            scene.add(squareMesh);
+
+            var carMaterial = new THREE.MeshBasicMaterial({
+                color: 0xcc6060,
+                side: THREE.DoubleSide,
+            });
+
+            car = new THREE.Mesh(squareGeometry, carMaterial);
+            car.position.set(-2.5, -1.0, 5.0);
+            car.scale.set(1.0, 0.5, 1.0);
+            scene.add(car);
+
+            whGeom = new THREE.CircleGeometry(5, 32);
+            whMat = new THREE.MeshBasicMaterial({
+                color: 0x777777,
+            });
+
+            wh1 = new THREE.Mesh(whGeom, whMat);
+            wh1.scale.set(0.1, 0.1, 0.1);
+            wh1.position.set(-3.5, -1.5, 5.0);
+            scene.add(wh1);
+
+            wh2 = new THREE.Mesh(whGeom, whMat);
+            wh2.scale.set(0.1, 0.1, 0.1);
+            wh2.position.set(-1.5, -1.5, 5.0);
+            scene.add(wh2);
+        }
+
+        function animateScene() {
+            t1.rotation.y += 0.1;
+            t2.rotation.y += 0.1;
+            t3.rotation.y += 0.1;
+            squareMesh.rotation.y -= 0.1;
+            t4.rotation.y -= 0.1;
+
+            if (++carLoc <= 100) {
+                car.position.x += carLoc > 0 ? 0.05 : -0.05;
+                wh1.position.x += carLoc > 0 ? 0.05 : -0.05;
+                wh2.position.x += carLoc > 0 ? 0.05 : -0.05;
+            } else carLoc = -100;
+
+            requestAnimationFrame(animateScene);
+            renderScene();
+        }
+
+        function renderScene() {
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>

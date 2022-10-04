@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Three.js tutorial - Example 04</title>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1" />
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1" />
+    <style type="text/css">
+        body {
+            background-color: #000000;
+            overflow: hidden;
+        }
+    </style>
+    <script src="three.js"></script>
+    <script src="Detector.js"></script>
+</head>
+
+<body>
+    <div id="WebGLCanvas"></div>
+    <script>
+        var scene;
+        var camera;
+        var pyramidMesh;
+        var cubeMesh;
+
+        var loc = 0;
+
+        initializeScene();
+        animateScene();
+
+        function initializeScene() {
+            if (Detector.webgl)
+                renderer = new THREE.WebGLRenderer({
+                    antialias: true,
+                });
+            else renderer = new THREE.CanvasRenderer();
+
+            renderer.setClearColor(0x000000, 1);
+
+            canvasWidth = window.innerWidth;
+            canvasHeight = window.innerHeight;
+
+            renderer.setSize(canvasWidth, canvasHeight);
+
+            document
+                .getElementById("WebGLCanvas")
+                .appendChild(renderer.domElement);
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(
+                45,
+                canvasWidth / canvasHeight,
+                1,
+                100
+            );
+            camera.position.set(0, 0, 10);
+            camera.lookAt(scene.position);
+            scene.add(camera);
+
+            // To create a pyramid, we use THREE.CylinderGeometry. By its five parameters, we are
+            // able to create the geometry of the pyramid (subtype of a cylinder).
+            // Parameter 1 'radiusTop': Controls the radius of the upper end of the cylinder. If we
+            //                          set to to '0', we have a cone.
+            // Parameter 2 'radiusBottom': Controls the radius of the lower end.
+            // Parameter 3 'height': Sets the height of the cylinder.
+            // Parameter 4 'segments': Number of segments, forming the cylindrical shell. To create
+            //                         a pyramid, we choose '4'.
+            // Parameter 5 'openEnded': Allows to have open ends ('true') or closed ends ('false')
+            //                          of the cylindern. Since the pyramid shall have a bottom
+            //                          face, we set it to 'false'.
+            var pyramidGeometry = new THREE.CylinderGeometry(
+                0.3,
+                1.5,
+                1.5,
+                128,
+                false
+            );
+
+            // Coloring the faces with vertex colors is a bit tricky, but allows us to see how to
+            // loop through the faces and check whether they have three or four vertices.
+            // With a simple 'for'-loop we run through all faces, which are accessed by their index.
+            // The 'instanceof' operator gives the possibility to check, whether the current face is
+            // a THREE.Face4 or THREE.Face3. Depending on its object type, we set three or four
+            // vertex colors. For THREE.Face4 we switch the colors of vertex 1 and 2 for every
+            // second face because we want the lower vertices having the same colors as the
+            // neighbour face. Vertex 0 and 3 are the upper vertices, which are always red.
+            // If WebGL isn't supported and the canvas renderer is used, it ignores the vertex
+            // colors. They are only supported by the WebGL renderer
+            for (i = 0; i < pyramidGeometry.faces.length; i++) {
+                if (pyramidGeometry.faces[i] instanceof THREE.Face4) {
+                    pyramidGeometry.faces[i].vertexColors[0] =
+                        new THREE.Color(0xff0000);
+                    if (i % 2 == 0) {
+                        pyramidGeometry.faces[i].vertexColors[1] =
+                            new THREE.Color(0xaa8888);
+                        pyramidGeometry.faces[i].vertexColors[2] =
+                            new THREE.Color(0xaaaa88);
+                    } else {
+                        pyramidGeometry.faces[i].vertexColors[1] =
+                            new THREE.Color(0xaa88aa);
+                        pyramidGeometry.faces[i].vertexColors[2] =
+                            new THREE.Color(0x8888aa);
+                    }
+                    pyramidGeometry.faces[i].vertexColors[3] =
+                        new THREE.Color(0x88aaaa);
+                } else {
+                    pyramidGeometry.faces[i].vertexColors[0] =
+                        new THREE.Color(0x88aa88);
+                    pyramidGeometry.faces[i].vertexColors[1] =
+                        new THREE.Color(0xaa88aa);
+                    pyramidGeometry.faces[i].vertexColors[2] =
+                        new THREE.Color(0xaa8888);
+                }
+            }
+
+            // To activate the vertex color, we have to set 'vertexColors' attribute to
+            // 'THREE.VertexColors'. Otherwise they won't be displayed.
+
+            // Create a basic material, supporting vertex colors. Activate the 'doubleSided'
+            // attribute to force the rendering of both sides of each face (front and back).
+            // This prevents the so called 'backface culling'. Usually, only the side is
+            // rendered, whose normal vector points towards the camera. The other side is not
+            // rendered (backface culling). But this performance optimization sometimes leads
+            // to wholes in the surface. When this happens in your surface, simply set
+            // 'doubleSided' to 'true'.
+            var pyramidMaterial = new THREE.MeshBasicMaterial({
+                vertexColors: THREE.VertexColors,
+                side: THREE.DoubleSide,
+            });
+
+            // Create a mesh and insert the geometry and the material. Translate the whole mesh
+            // by -1.5 on the x axis and by 4 on the z axis. Finally add the mesh to the scene.
+            pyramidMesh = new THREE.Mesh(pyramidGeometry, pyramidMaterial);
+            pyramidMesh.position.set(-1.5, 0.0, 4.0);
+            scene.add(pyramidMesh);
+
+            coneGeom = new THREE.CylinderGeometry(0, 0.3, 0.6, 32);
+            coneMat = new THREE.MeshBasicMaterial({
+                color: 0x44ff66,
+            });
+
+            c1 = new THREE.Mesh(coneGeom, coneMat);
+            c1.position.set(0, 0.0, -5);
+            scene.add(c1);
+
+            c2 = new THREE.Mesh(coneGeom, coneMat);
+            c2.position.set(0, 0.3, -5);
+            scene.add(c2);
+
+            c3 = new THREE.Mesh(coneGeom, coneMat);
+            c3.position.set(0, -0.3, -5);
+            scene.add(c3);
+
+            // Create the cube
+            // Parameter 1: Width
+            // Parameter 2: Height
+            // Parameter 3: Depth
+            var cubeGeometry = new THREE.CubeGeometry(1.5, 1.5, 1.5);
+
+            // Applying different materials to the faces is a more difficult than applying one
+            // material to the whole geometry. We start with creating an array of
+            // THREE.MeshBasicMaterial.
+
+            // Define six colored materials
+            var cubeMaterials = [
+                new THREE.MeshBasicMaterial({
+                    color: 0xaa8888,
+                }),
+                new THREE.MeshBasicMaterial({
+                    color: 0xaaaa88,
+                }),
+                new THREE.MeshBasicMaterial({
+                    color: 0xaa88aa,
+                }),
+                new THREE.MeshBasicMaterial({
+                    color: 0xaa8888,
+                }),
+                new THREE.MeshBasicMaterial({
+                    color: 0x000000,
+                }),
+                new THREE.MeshBasicMaterial({
+                    color: 0x88aa88,
+                }),
+            ];
+
+            var cubeMaterial = new THREE.MeshFaceMaterial(cubeMaterials);
+            cubeMesh = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            cubeMesh.position.set(1.5, 0.0, 4.0);
+            scene.add(cubeMesh);
+        }
+
+        function animateScene() {
+            if (loc >= 3.0) loc = -3.0;
+            else loc += 0.05;
+
+            pyramidMesh.scale.z += loc > 0 ? 0.05 : -0.05;
+
+            cubeMesh.rotateOnAxis(
+                new THREE.Vector3(1, 1, 1).normalize(),
+                0.075
+            );
+
+            c1.rotation.x += 0.1;
+            c2.rotation.x += 0.1;
+            c3.rotation.x += 0.1;
+
+            requestAnimationFrame(animateScene);
+            renderScene();
+        }
+
+        function renderScene() {
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>
