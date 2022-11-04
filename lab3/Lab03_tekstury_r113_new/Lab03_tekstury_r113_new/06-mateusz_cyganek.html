@@ -1,37 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <title>Reflection (Three.js) Example 04 05</title>
-        <meta charset="utf-8" />
-        <meta
-            name="viewport"
-            content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
-        />
-        <link rel="stylesheet" href="css/base.css" />
-    </head>
 
-    <body>
-        <script src="three.js"></script>
-        <script src="ParametricGeometries.js"></script>
+<head>
+    <title>Reflection (Three.js) Example 04 05</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <link rel="stylesheet" href="css/base.css" />
+</head>
 
-        <script src="Detector.js"></script>
-        <script src="stats.js"></script>
-        <script src="OrbitControls.js"></script>
-        <script src="THREEx.KeyboardState.js"></script>
-        <script src="THREEx.FullScreen.js"></script>
-        <script src="THREEx.WindowResize.js"></script>
+<body>
+    <script src="three.js"></script>
+    <script src="ParametricGeometries.js"></script>
 
-        <!-- jQuery code to display an information button and box when clicked. -->
-        <script src="jquery-1.9.1.js"></script>
-        <script src="jquery-ui.js"></script>
-        <link rel="stylesheet" href="jquery-ui.css" />
-        <link rel="stylesheet" href="info.css" />
-        <script src="info.js"></script>
-        <div id="infoButton"></div>
-        <div id="infoBox" title="Demo Information">
-            This three.js demo is part of a collection at
-            <a href="http://stemkoski.github.io/Three.js/"
-                >http://stemkoski.github.io/Three.js/</a
+    <script src="Detector.js"></script>
+    <script src="stats.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="THREEx.KeyboardState.js"></script>
+    <script src="THREEx.FullScreen.js"></script>
+    <script src="THREEx.WindowResize.js"></script>
+
+    <!-- jQuery code to display an information button and box when clicked. -->
+    <script src="jquery-1.9.1.js"></script>
+    <script src="jquery-ui.js"></script>
+    <link rel="stylesheet" href="jquery-ui.css" />
+    <link rel="stylesheet" href="info.css" />
+    <script src="info.js"></script>
+    <div id="infoButton"></div>
+    <div id="infoBox" title="Demo Information">
+        This three.js demo is part of a collection at
+        <a href="http://stemkoski.github.io/Three.js/">http://stemkoski.github.io/Three.js/</a
             >
         </div>
         <!-- ------------------------------------------------------------ -->
@@ -39,10 +36,10 @@
         <div id="ThreeJS" style="position: absolute; left: 0px; top: 0px"></div>
         <script>
             /*
-        	Three.js "tutorials by example"
-        	Author: Lee Stemkoski
-        	Date: July 2013 (three.js v59dev)
-        */
+            	Three.js "tutorials by example"
+            	Author: Lee Stemkoski
+            	Date: July 2013 (three.js v59dev)
+            */
 
             // MAIN
 
@@ -51,9 +48,21 @@
             var keyboard = new THREEx.KeyboardState();
             var clock = new THREE.Clock();
 
+            var step = 0;
+
             // custom global variables
             var mirrorCube, mirrorCubeCamera; // for mirror material
             var mirrorSphere, mirrorSphereCamera; // for mirror material
+            var sphere1, sphere2, sphere3, sphere4;
+            var mirrorCube2, mirrorCubeCamera2; // for mirror material
+            var mirrorSphere2, mirrorSphereCamera2; // for mirror material
+            var mirrorCube3, mirrorCubeCamera3; // for mirror material
+            var mirrorSphere3, mirrorSphereCamera3; // for mirror material
+            var glassMesh;
+            var mirrorCube4, mirrorCubeCamera4; // for mirror material
+            var mirrorSphere4, mirrorSphereCamera4; // for mirror material
+
+            var light2;
 
             init();
             animate();
@@ -195,6 +204,26 @@
                 mirrorCubeCamera.position.set(-75, 50, 0);
                 scene.add(mirrorCube);
 
+                var cubeGeom4 = new THREE.CubeGeometry(
+                    200,
+                    200,
+                    30,
+                    10,
+                    10,
+                    10
+                );
+                mirrorCubeCamera4 = new THREE.CubeCamera(0.1, 5000, 512);
+                // mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+                scene.add(mirrorCubeCamera4);
+                mirrorCubeMaterial4 = new THREE.MeshBasicMaterial({
+                    envMap: mirrorCubeCamera4.renderTarget,
+                });
+                mirrorCube4 = new THREE.Mesh(cubeGeom4, mirrorCubeMaterial);
+                mirrorCube4.position.set(-500, 100, -500);
+                //mirrorCubeCamera.position = mirrorCube.position;    not working with new three.js
+                mirrorCubeCamera4.position.set(-500, 100, -500);
+                scene.add(mirrorCube4);
+
                 var sphereGeom = new THREE.SphereGeometry(50, 32, 16); // radius, segmentsWidth, segmentsHeight
                 mirrorSphereCamera = new THREE.CubeCamera(0.1, 5000, 512);
                 // mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
@@ -210,25 +239,107 @@
 
                 ////////////////////////////////////////////////////////////////
 
-                var sphere1 = createMesh(
-                    new THREE.CubeGeometry(400, 400, 10),
+                const ambiColor = "#111";
+                const ambientLight = new THREE.AmbientLight(ambiColor);
+                scene.add(ambientLight);
+
+                var light = new THREE.SpotLight();
+                light.position.set(0, 30, 30);
+                light.intensity = 1.2;
+                scene.add(light);
+
+                sphere1 = createMesh(
+                    new THREE.CubeGeometry(200, 200, 200),
                     "stone.jpg"
                 );
-                sphere1.position.x = 100;
+                sphere1.position.x = 300;
                 sphere1.rotation.y = -0.5;
-                sphere1.position.y = -100;
+                sphere1.position.y = 100;
                 scene.add(sphere1);
 
-                var sphere2 = createMesh(
-                    new THREE.CubeGeometry(400, 400, 10),
+                sphere2 = createMesh(
+                    new THREE.CubeGeometry(200, 200, 200),
                     "stone.jpg",
                     "stone-bump.jpg"
                 );
-                sphere2.position.x = 100;
+                sphere2.position.x = -300;
                 sphere2.rotation.y = 0.5;
                 sphere2.position.y = 100;
                 scene.add(sphere2);
-                console.log(sphere2.geometry.faceVertexUvs);
+
+                var sphereGeom2 = new THREE.SphereGeometry(100, 100, 10);
+                mirrorSphereCamera2 = new THREE.CubeCamera(0.1, 5000, 512);
+                // mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+                scene.add(mirrorSphereCamera2);
+                var mirrorSphereMaterial2 = new THREE.MeshBasicMaterial({
+                    envMap: mirrorSphereCamera2.renderTarget,
+                });
+                mirrorSphere2 = new THREE.Mesh(
+                    sphereGeom2,
+                    mirrorSphereMaterial2
+                );
+                mirrorSphere2.position.set(-300, 100, 300);
+                //mirrorSphereCamera.position = mirrorSphere.position;
+                mirrorSphereCamera2.position.set(-300, 100, 300);
+                scene.add(mirrorSphere2);
+
+                var sphereGeom3 = new THREE.SphereGeometry(100, 100, 10);
+                mirrorSphereCamera3 = new THREE.CubeCamera(0.1, 5000, 512);
+                // mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+                scene.add(mirrorSphereCamera3);
+                var mirrorSphereMaterial3 = new THREE.MeshBasicMaterial({
+                    envMap: mirrorSphereCamera3.renderTarget,
+                });
+                mirrorSphere3 = new THREE.Mesh(
+                    sphereGeom3,
+                    mirrorSphereMaterial3
+                );
+                mirrorSphere3.position.set(300, 100, 300);
+                //mirrorSphereCamera.position = mirrorSphere.position;
+                mirrorSphereCamera3.position.set(300, 100, 300);
+                scene.add(mirrorSphere3);
+
+                mirrorSphereCamera4 = new THREE.CubeCamera(0.1, 5000, 512);
+                // mirrorCubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+                scene.add(mirrorSphereCamera4);
+
+                var glassMat = new THREE.MeshPhysicalMaterial({
+                    envMap: mirrorSphereCamera4.renderTarget,
+                    color: 0x0000ff,
+                    metalness: 0,
+                    roughness: 0.2,
+                    transmission: 0.9,
+                    ior: 1.6,
+                    reflectivity: 0.5,
+                    thickness: 2.5,
+                    envMapIntensity: 5,
+                    clearcoat: 1,
+                    clearcoatRoughness: 0.1,
+
+                    refractionRatio: 0.6,
+                    transparent: true,
+                    opacity: 0.5,
+                    side: THREE.BackSide,
+                });
+
+                glassMesh = new THREE.Mesh(
+                    new THREE.TorusKnotGeometry(60, 20, 40, 8),
+                    glassMat
+                );
+                //glassMesh.renderDepth = -1.1;
+                scene.add(glassMesh);
+
+                light2 = new THREE.SpotLight(0xff00ff);
+                light2.position.y = 300;
+                light2.castShadow = true;
+                light2.intensity = 1;
+                light2.target = mirrorCube;
+                light2.shadow.camera.near = 0.1;
+                light2.shadow.camera.far = 1000;
+                light2.shadow.camera.fov = 90;
+                scene.add(light2);
+
+                ////////////////////////////////////////////////////////////////
 
                 function createMesh(geom, imageFile, bump) {
                     var texture = THREE.ImageUtils.loadTexture(
@@ -243,7 +354,7 @@
                             "textures/" + bump
                         );
                         mat.bumpMap = bump;
-                        mat.bumpScale = 0.2;
+                        mat.bumpScale = 1;
                         console.log("d");
                     }
 
@@ -287,19 +398,39 @@
                 //mirrorTorusCamera.updateCubeMap( renderer, scene );
                 //torus.visible = true;
 
+                sphere1.rotation.y -= 0.01;
+                sphere2.rotation.y += 0.01;
+
+                var sin = Math.sin(step),
+                    cos = Math.cos(step);
+                var sin2 = Math.abs(sin) * sin * 200;
+
+                mirrorSphere2.position.x = 300 + sin2;
+                mirrorSphereCamera2.position.x = mirrorSphere2.position.x;
+                mirrorSphereCamera2.updateCubeMap(renderer, scene);
+
+                mirrorSphere3.position.x = -300 - sin2;
+                mirrorSphereCamera3.position.x = mirrorSphere3.position.x;
+                mirrorSphereCamera3.updateCubeMap(renderer, scene);
+
+                glassMesh.position.y = Math.abs(sin) * 400 + 50;
+                mirrorSphereCamera4.position.y = glassMesh.position.y;
+                glassMesh.position.z = cos * 400;
+                mirrorSphereCamera4.position.z = glassMesh.position.x;
+                glassMesh.rotation.y = step;
+                mirrorSphereCamera4.rotation.y = step;
+                mirrorSphereCamera4.updateCubeMap(renderer, scene);
+
+                light2.position.x = sin * 600;
+                light2.position.z = cos * 600;
+
+                mirrorCube.rotation.y = -step / 4;
+                mirrorCube4.rotation.y = step / 4;
+
+                step += 0.01;
+
                 renderer.render(scene, camera);
             }
         </script>
     </body>
 </html>
-
-<!--
-	stemkowski.github.io/Three.js/
-	TODO
-	- obiekt z tekstura, bump, +pos + rot
-	- obiekt glass, +pos + rot
-	- obiekt gloss, +pos + rot
-    - poruszające obiekty lustrzane odbijają się wzajemnie od siebie
-	- cube tris to quads
-	- zmienić parametry cube camera
--->
